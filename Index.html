@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Math Graph</title>
+  <style>
+    body {
+      font-size: 15pt;
+      background-color: #F7F8FF;
+      margin: 0;
+    }
+    section {
+      padding: 1em;
+      padding-top: 2em;
+      display: none;
+      position: absolute;
+      width: 98%;
+      height: auto;
+      background-color: #F8F8F8;
+    }
+    nav {
+      padding: 1em;
+      z-index: 99;
+    }
+    section:target {
+      display: block;
+    }
+    #home {
+      display: block;
+    }
+    p {
+      text-align: left;
+      padding: 10px;
+      line-height: 1.4em;
+    }
+    .boxp {
+      border: 1px solid black;
+      box-shadow: 2px 2px 2px black;
+      border-radius: 12px;
+      background: #242531;
+      color: white;
+      padding-left: 10px;
+    }
+    .h {
+      width: 80%;
+      height: 50%;
+    }
+    .h img {
+      width: 100%;
+      height: 100%;
+    }
+    canvas {
+      max-width: 100%;
+      height: auto;
+    }
+            .sudoku-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 30px);
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+        .sudoku-grid input {
+            width: 30px;
+            height: 30px;
+            text-align: center;
+        }
+  </style>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <section id="home">
+    <h1>Absolutely home</h1>
+    <p class="boxp">Mathematics <br> 2x x 25x2 - √f <br> 27π </p>
+    <p class="boxp">Touch and hold a clip to pin it. Unpinned clips will be deleted after 1 hour. Welcome to Gboard</p>
+    <nav>
+      <a href="#math1"><div class="h"><img src="1.jpg"></div></a>
+      <a href="#about">About</a> |
+      <a href="#contact">Contact</a>
+    </nav>
+  </section>
+
+  <section id="math1">
+    <h1>Graph Function</h1>
+    <p>Enter a mathematical function to see its graph:</p>
+    <input type="text" id="functionInput" placeholder="e.g., -x + 2">
+    <button onclick="plotFunction()">Plot Function</button>
+    <button onclick="refreshInput('functionInput')">Refresh Input 1</button>
+    <canvas id="functionGraph"></canvas>
+  </section>
+
+  <section id="about">
+    <h1>Quadratic Equation Solver</h1>
+    <p>Enter the coefficients of a quadratic equation (ax² + bx + c = 0) to find its roots:</p>
+    <input type="number" id="a" placeholder="a">
+    <input type="number" id="b" placeholder="b">
+    <input type="number" id="c" placeholder="c">
+    <button onclick="solveQuadratic()">Solve</button>
+    <p id="result"></p>
+  </section>
+
+  <section id="contact">
+          <h1>Sudoku Solver</h1>
+        <p>Enter the Sudoku puzzle numbers (0 for empty cells):</p>
+        <div class="sudoku-grid" id="sudoku-grid"></div>
+        <button onclick="solveSudoku()">Solve Sudoku</button>
+        
+        <p id="sudoku-result"></p>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/9.5.0/math.min.js"></script>
+  <script>
+    let chart;
+
+    function plotFunction() {
+      const input = document.getElementById('functionInput').value;
+
+      // Validate and parse the function input
+      try {
+        const parsedFunction = math.parse(input);
+        const compiledFunction = parsedFunction.compile();
+
+        // Generate data points
+        const xValues = [];
+        const yValues = [];
+        for (let x = -10; x <= 10; x += 0.1) {
+          xValues.push(x);
+          yValues.push(compiledFunction.evaluate({ x }));
+        }
+
+        // Get the context of the canvas
+        const ctx = document.getElementById('functionGraph').getContext('2d');
+
+        // Destroy previous chart instance if exists
+        if (chart) {
+          chart.destroy();
+        }
+
+        // Create new chart instance
+        chart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: xValues,
+            datasets: [{
+              label: `f(x) = ${input}`,
+              data: yValues,
+              borderColor: 'blue',
+              borderWidth: 2,
+              fill: false,
+            }]
+          },
+          options: {
+            scales: {
+              x: {
+                type: 'linear',
+                position: 'bottom',
+                title: {
+                  display: true,
+                  text: 'x'
+                }
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: 'f(x)'
+                }
+              }
+            }
+          }
+        });
+      } catch (error) {
+        alert('Invalid function. Please enter a valid mathematical expression.');
+      }
+    }
+
+    function solveQuadratic() {
+      const a = parseFloat(document.getElementById('a').value);
+      const b = parseFloat(document.getElementById('b').value);
+      const c = parseFloat(document.getElementById('c').value);
+
+      if (isNaN(a) || isNaN(b) || isNaN(c)) {
+        document.getElementById('result').innerText = 'Please enter valid coefficients.';
+        return;
+      }
+
+      const discriminant = b * b - 4 * a * c;
+
+      if (discriminant > 0) {
+        const root1 = (-b + Math.sqrt(discriminant)) / (2 * a);
+        const root2 = (-b - Math.sqrt(discriminant)) / (2 * a);
+        document.getElementById('result').innerText = `The roots are real and different: x1 = ${root1}, x2 = ${root2}`;
+      } else if (discriminant === 0) {
+        const root = -b / (2 * a);
+        document.getElementById('result').innerText = `The roots are real and the same: x = ${root}`;
+      } else {
+        const realPart = -b / (2 * a);
+        const imaginaryPart = Math.sqrt(-discriminant) / (2 * a);
+        document.getElementById('result').innerText = `The roots are complex and different: x1 = ${realPart} + ${imaginaryPart}i, x2 = ${realPart} - ${imaginaryPart}i`;
+      }
+    }
+    
+    function createSudokuGrid() {
+            const gridContainer = document.getElementById('sudoku-grid');
+            for (let i = 0; i < 81; i++) {
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.min = '0';
+                input.max = '9';
+                gridContainer.appendChild(input);
+            }
+        }
+
+        function getSudokuGrid() {
+            const inputs = document.querySelectorAll('#sudoku-grid input');
+            const grid = [];
+            inputs.forEach(input => grid.push(parseInt(input.value) || 0));
+            return grid;
+        }
+
+        function setSudokuGrid(grid) {
+            const inputs = document.querySelectorAll('#sudoku-grid input');
+            inputs.forEach((input, index) => {
+                input.value = grid[index] || '';
+            });
+        }
+
+        function solveSudoku() {
+            const grid = getSudokuGrid();
+            if (!isValidSudoku(grid)) {
+                alert("Invalid Sudoku puzzle! Please check your input.");
+                return;
+            }
+            if (solve(grid)) {
+                setSudokuGrid(grid);
+                document.getElementById('sudoku-result').textContent = "Sudoku solved!";
+            } else {
+                document.getElementById('sudoku-result').textContent = "No solution found!";
+            }
+        }
+
+        function isValidSudoku(grid) {
+            for (let i = 0; i < 81; i++) {
+                const value = grid[i];
+                if (value < 0 || value > 9 || isNaN(value)) {
+                    return false;
+                }
+                if (value !== 0 && !isValid(i, value, grid)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function isValid(index, value, grid) {
+            const row = Math.floor(index / 9);
+            const col = index % 9;
+            for (let i = 0; i < 9; i++) {
+                if (grid[row * 9 + i] === value && i !== col) return false;
+                if (grid[i * 9 + col] === value && i !== row) return false;
+                const startRow = Math.floor(row / 3) * 3 + Math.floor(i / 3);
+                const startCol = Math.floor(col / 3) * 3 + i % 3;
+                if (grid[startRow * 9 + startCol] === value && startRow * 9 + startCol !== index) return false;
+            }
+            return true;
+        }
+
+        function solve(grid) {
+            const empty = grid.indexOf(0);
+            if (empty === -1) return true;
+            for (let num = 1; num <= 9; num++) {
+                if (isValid(empty, num, grid)) {
+                    grid[empty] = num;
+                    if (solve(grid)) return true;
+                    grid[empty] = 0;
+                }
+            }
+            return false;
+        }
+
+        createSudokuGrid();
+    
+    
+    function refreshInput(inputId) {
+            document.getElementById(inputId).value = '';
+        }
+
+        function refreshSudoku() {
+            const sudokuInputs = document.querySelectorAll('.sudoku-input');
+            sudokuInputs.forEach(input => input.value = '');
+        }
+  </script>
+</body>
+</html>
